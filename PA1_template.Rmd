@@ -1,0 +1,110 @@
+---
+title: 'Reproducible Research: Project 1'
+output: 
+---
+## Reading and Processing Data
+```data <- read.csv("activity.csv")
+```
+## data Date
+
+```data$date<-as.Date(data$date)
+
+```
+## Histogram of the total number of steps taken each day
+
+```
+steps_day <- aggregate(steps ~ date, data, sum)
+hist(steps_day$steps, main = paste("Total Steps Each Day"), col="blue", xlab="Number of Steps")
+```
+
+## Mean and median number of steps taken each day
+
+```steps_day <- aggregate(steps ~ date, data, sum)
+rmean <- mean(steps_day$steps)
+rmedian <- median(steps_day$steps)
+sprintf("MEAN of steps taken each day = %.3f", rmean)
+
+sprintf("MEDIAN of steps taken each day = %.3f", rmedian)
+```
+
+## Average number of steps taken per Day by Interval
+
+```steps_interval <- aggregate(steps ~ interval, data, mean)
+plot(steps_interval$interval,steps_interval$steps, type="l", xlab="Interval", ylab="Number of Steps",main="Average Number of Steps per Day by Interval")
+```
+## 5-minute interval(Average) contains the maximum number of steps
+
+```max_interval <- steps_interval[which.max(steps_interval$steps),1]
+sprintf("MAXIMUM number of steps in 5-minute interval = %.0f", max_interval)
+
+```
+## computing for imputing missing data
+
+```inc_data <- sum(!complete.cases(data))
+sprintf("MISSING data = %.0f", inc_data)
+
+imputed_NA_data <- transform(data, steps = ifelse(is.na(data$steps), steps_interval$steps[match(data$interval, steps_interval$interval)], data$steps))
+```
+## Histogram of the total number of steps taken each day with imputed missing data
+
+```imputed_steps_day <- aggregate(steps ~ date, imputed_NA_data, sum)
+hist(imputed_steps_day$steps, main = paste("Total Steps Each Day"), col="yellow", xlab="Number of Steps")
+
+hist(steps_day$steps, main = paste("Total Steps Each Day"), col="blue", xlab="Number of Steps", add=T)
+legend("topright", c("Imputed", "Non-imputed"), col=c("yellow", "blue"), lwd=10)
+
+```
+## Mean Difference
+
+```rmean <- mean(steps_day$steps)
+imputed_rmean <- mean(imputed_steps_day$steps)
+sprintf("MEAN of steps taken each day = %.3f", rmean)
+
+sprintf("MEAN of steps taken each day with IMPUTED data = %.3f", imputed_rmean)
+
+sprintf("The difference is %.3f ", imputed_rmean-rmean)
+
+```
+## Median difference
+
+```rmed <- median(steps_day$steps)
+imputed_rmed <- median(imputed_steps_day$steps)
+sprintf("MEADIAN of steps taken each day = %.3f", rmed)
+
+sprintf("MEDIAN of steps taken each day with IMPUTED data = %.3f", imputed_rmed)
+
+sprintf("The difference is %.3f ", imputed_rmed-rmed)
+```
+
+## total Steps Difference
+
+```total <- sum(steps_day$steps)
+imputed_tot <- sum(imputed_steps_day$steps)
+sprintf("TOTAL of steps = %.3f", total)
+
+sprintf("TOTAL of steps with IMPUTED data = %.3f", imputed_tot)
+
+sprintf("The difference is %.3f ", imputed_tot-total)
+```
+
+## weekdays and weekends of average number of steps taken per 5-minute intterval
+
+```weekend <- c("Saturday", "Sunday")
+imputed_NA_data$dow = as.factor(ifelse(is.element(weekdays(as.Date(imputed_NA_data$date)),weekend), "Weekend", "Weekday"))
+imputed_steps_interval <- aggregate(steps ~ interval + dow, imputed_NA_data, mean)
+
+library(lattice)
+
+xyplot(imputed_steps_interval$steps ~ imputed_steps_interval$interval|imputed_steps_interval$dow, main="Average Steps per Day by Interval",xlab="Interval", ylab="Steps",layout=c(1,2), type="l")
+
+```
+
+
+
+
+
+
+
+
+
+
